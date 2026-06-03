@@ -57,39 +57,18 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // ============================================================
-    // 1. GRANICE NAKŁADKI
-    // ============================================================
-    // TU MUSISZ WPISAĆ PRAWDZIWE GRANICE TWOJEJ NAKŁADKI.
-    //
-    // Format:
-    // [
-    //   [southLat, westLon],
-    //   [northLat, eastLon]
-    // ]
-    //
-    // Czyli:
-    // [
-    //   [południe, zachód],
-    //   [północ, wschód]
-    // ]
-    //
-    // UWAGA: Leaflet używa kolejności [lat, lon], nie [lon, lat].
+    // Punkt centralny Twojej nakładki — Góry Izerskie
+    const overlayCenter = [50.876548, 15.316264];
 
-    const overlayBounds = [
-      [50.0000, 19.0000], // <-- ZMIEŃ: południowo-zachodni narożnik
-      [50.1000, 19.1000]  // <-- ZMIEŃ: północno-wschodni narożnik
-    ];
+    // Zoom startowy. Jeśli chcesz bliżej, zwiększ na 16 albo 17.
+    const overlayZoom = 15;
 
-    // ============================================================
-    // 2. MAPA
-    // ============================================================
-
+    // Utworzenie mapy od razu w rejonie nakładki
     const map = L.map('map', {
       zoomControl: true
-    });
+    }).setView(overlayCenter, overlayZoom);
 
-    // Podkład satelitarny
+    // Podkład satelitarny Esri
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -117,49 +96,37 @@
       }
     ).addTo(map);
 
-    // ============================================================
-    // 3. STARTOWE ZBLIŻENIE DO NAKŁADKI
-    // ============================================================
+    // Opcjonalny marker pomocniczy w środku obszaru
+    const marker = L.marker(overlayCenter)
+      .addTo(map)
+      .bindPopup('Rejon nakładki')
+      .openPopup();
 
-    map.fitBounds(overlayBounds, {
-      padding: [30, 30]
-    });
-
-    // ============================================================
-    // 4. KONTROLA WARSTW
-    // ============================================================
-
+    // Przełącznik warstw
     L.control.layers(
       {
         'Satelita': satellite,
         'OpenStreetMap': osm
       },
       {
-        'Twoja nakładka': overlay
+        'Twoja nakładka': overlay,
+        'Marker środka': marker
       },
       {
         collapsed: false
       }
     ).addTo(map);
 
-    // ============================================================
-    // 5. SUWAK PRZEZROCZYSTOŚCI
-    // ============================================================
-
+    // Suwak przezroczystości
     document.getElementById('opacity').addEventListener('input', function () {
       const opacity = Number(this.value) / 100;
       overlay.setOpacity(opacity);
       document.getElementById('opacityValue').textContent = this.value + '%';
     });
 
-    // ============================================================
-    // 6. PRZYCISK: POKAŻ NAKŁADKĘ
-    // ============================================================
-
+    // Przycisk zbliżenia do nakładki
     document.getElementById('zoomToOverlay').addEventListener('click', function () {
-      map.fitBounds(overlayBounds, {
-        padding: [30, 30]
-      });
+      map.setView(overlayCenter, overlayZoom);
     });
   </script>
 </body>
