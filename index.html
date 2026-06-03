@@ -6,7 +6,7 @@
 
   <link
     rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   >
 
   <style>
@@ -26,10 +26,18 @@
       box-shadow: 0 1px 6px rgba(0,0,0,0.35);
       font-family: Arial, sans-serif;
       font-size: 14px;
+      line-height: 1.4;
     }
 
     .panel input {
       width: 180px;
+    }
+
+    .panel button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 6px 8px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -41,21 +49,47 @@
     <label for="opacity">Przezroczystość nakładki</label><br>
     <input id="opacity" type="range" min="0" max="100" value="60">
     <span id="opacityValue">60%</span>
+
+    <br>
+    <button id="zoomToOverlay">Pokaż nakładkę</button>
   </div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    const map = L.map('map').setView([52.0, 19.0], 7);
+    // ============================================================
+    // 1. GRANICE NAKŁADKI
+    // ============================================================
+    // TU MUSISZ WPISAĆ PRAWDZIWE GRANICE TWOJEJ NAKŁADKI.
+    //
+    // Format:
+    // [
+    //   [southLat, westLon],
+    //   [northLat, eastLon]
+    // ]
+    //
+    // Czyli:
+    // [
+    //   [południe, zachód],
+    //   [północ, wschód]
+    // ]
+    //
+    // UWAGA: Leaflet używa kolejności [lat, lon], nie [lon, lat].
 
-    const osm = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-      }
-    );
+    const overlayBounds = [
+      [50.0000, 19.0000], // <-- ZMIEŃ: południowo-zachodni narożnik
+      [50.1000, 19.1000]  // <-- ZMIEŃ: północno-wschodni narożnik
+    ];
 
+    // ============================================================
+    // 2. MAPA
+    // ============================================================
+
+    const map = L.map('map', {
+      zoomControl: true
+    });
+
+    // Podkład satelitarny
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -64,6 +98,16 @@
       }
     ).addTo(map);
 
+    // Podkład OpenStreetMap
+    const osm = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }
+    );
+
+    // Twoja nakładka z Map Warpera
     const overlay = L.tileLayer(
       'https://mapwarper.net/maps/tile/107467/{z}/{x}/{y}.png',
       {
@@ -73,21 +117,49 @@
       }
     ).addTo(map);
 
-    const baseMaps = {
-      'Satelita': satellite,
-      'OpenStreetMap': osm
-    };
+    // ============================================================
+    // 3. STARTOWE ZBLIŻENIE DO NAKŁADKI
+    // ============================================================
 
-    const overlayMaps = {
-      'Twoja nakładka': overlay
-    };
+    map.fitBounds(overlayBounds, {
+      padding: [30, 30]
+    });
 
-    L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+    // ============================================================
+    // 4. KONTROLA WARSTW
+    // ============================================================
+
+    L.control.layers(
+      {
+        'Satelita': satellite,
+        'OpenStreetMap': osm
+      },
+      {
+        'Twoja nakładka': overlay
+      },
+      {
+        collapsed: false
+      }
+    ).addTo(map);
+
+    // ============================================================
+    // 5. SUWAK PRZEZROCZYSTOŚCI
+    // ============================================================
 
     document.getElementById('opacity').addEventListener('input', function () {
       const opacity = Number(this.value) / 100;
       overlay.setOpacity(opacity);
       document.getElementById('opacityValue').textContent = this.value + '%';
+    });
+
+    // ============================================================
+    // 6. PRZYCISK: POKAŻ NAKŁADKĘ
+    // ============================================================
+
+    document.getElementById('zoomToOverlay').addEventListener('click', function () {
+      map.fitBounds(overlayBounds, {
+        padding: [30, 30]
+      });
     });
   </script>
 </body>
