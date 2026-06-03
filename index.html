@@ -57,18 +57,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // Punkt centralny Twojej nakładki — Góry Izerskie
     const overlayCenter = [50.876548, 15.316264];
-
-    // Zoom startowy. Jeśli chcesz bliżej, zwiększ na 16 albo 17.
     const overlayZoom = 15;
 
-    // Utworzenie mapy od razu w rejonie nakładki
     const map = L.map('map', {
       zoomControl: true
     }).setView(overlayCenter, overlayZoom);
 
-    // Podkład satelitarny Esri
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -77,7 +72,6 @@
       }
     ).addTo(map);
 
-    // Podkład OpenStreetMap
     const osm = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
@@ -86,7 +80,6 @@
       }
     );
 
-    // Twoja nakładka z Map Warpera
     const overlay = L.tileLayer(
       'https://mapwarper.net/maps/tile/107467/{z}/{x}/{y}.png',
       {
@@ -96,35 +89,25 @@
       }
     ).addTo(map);
 
-    // Opcjonalny marker pomocniczy w środku obszaru
-    const marker = L.marker(overlayCenter)
-      .addTo(map)
-      .bindPopup('Rejon nakładki')
-      .openPopup();
-
-    // Przełącznik warstw
     L.control.layers(
       {
         'Satelita': satellite,
         'OpenStreetMap': osm
       },
       {
-        'Twoja nakładka': overlay,
-        'Marker środka': marker
+        'Twoja nakładka': overlay
       },
       {
         collapsed: false
       }
     ).addTo(map);
 
-    // Suwak przezroczystości
     document.getElementById('opacity').addEventListener('input', function () {
       const opacity = Number(this.value) / 100;
       overlay.setOpacity(opacity);
       document.getElementById('opacityValue').textContent = this.value + '%';
     });
 
-    // Przycisk zbliżenia do nakładki
     document.getElementById('zoomToOverlay').addEventListener('click', function () {
       map.setView(overlayCenter, overlayZoom);
     });
